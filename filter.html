@@ -76,11 +76,34 @@
         td:first-child {
             max-width: 150px; /* Zaman damgası sütunu için daha dar genişlik */
         }
+        /* Ana sayfa butonu için stil */
+        .home-button {
+            float: right;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .home-button:hover {
+            background-color: #0056b3;
+        }
+        /* Başlık container'ı için stil */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>BTR Öğretmen Evrakları Filtreleme</h1>
+        <div class="header-container">
+            <h1>BTR Öğretmen Evrakları Filtreleme</h1>
+            <a href="https://atilaerkek.github.io/" class="home-button">Ana Sayfa</a>
+        </div>
         
         <div class="filters">
             <label for="teacherSelect">Öğretmen Seçiniz:</label>
