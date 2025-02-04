@@ -181,6 +181,23 @@
             return result;
         }
 
+        function formatDate(dateStr) {
+            try {
+                // Google Sheets'in tarih formatını işle
+                const parts = dateStr.split(' ')[0].split('/');
+                if (parts.length === 3) {
+                    // Ay/Gün/Yıl formatından Gün.Ay.Yıl formatına çevir
+                    const month = parts[0].padStart(2, '0');
+                    const day = parts[1].padStart(2, '0');
+                    const year = parts[2];
+                    return `${day}.${month}.${year}`;
+                }
+                return dateStr;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
         function displayData(data) {
             if (!data.length) {
                 document.getElementById('results').innerHTML = '<p>Veri bulunamadı.</p>';
@@ -208,12 +225,7 @@
                     
                     // Zaman damgası kontrolü
                     if (header === 'Zaman damgası') {
-                        const date = new Date(content);
-                        if (!isNaN(date)) {
-                            td.textContent = date.toLocaleDateString('tr-TR');
-                        } else {
-                            td.textContent = content;
-                        }
+                        td.textContent = formatDate(content);
                     }
                     // URL kontrolü
                     else if (isValidURL(content)) {
