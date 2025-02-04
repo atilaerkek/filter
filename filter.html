@@ -191,7 +191,21 @@
                 const tr = document.createElement('tr');
                 headers.forEach(header => {
                     const td = document.createElement('td');
-                    td.textContent = row[header] || '';
+                    const content = row[header] || '';
+                    
+                    // URL kontrolü yap
+                    if (isValidURL(content)) {
+                        const link = document.createElement('a');
+                        link.href = content;
+                        link.textContent = content;
+                        link.target = "_blank"; // Yeni sekmede aç
+                        link.style.color = "#007bff"; // Link rengi
+                        link.style.textDecoration = "underline"; // Alt çizgi ekle
+                        td.appendChild(link);
+                    } else {
+                        td.textContent = content;
+                    }
+                    
                     tr.appendChild(td);
                 });
                 table.appendChild(tr);
@@ -199,6 +213,16 @@
 
             document.getElementById('results').innerHTML = '';
             document.getElementById('results').appendChild(table);
+        }
+
+        // URL kontrolü için yardımcı fonksiyon
+        function isValidURL(str) {
+            try {
+                // URL'in geçerli olup olmadığını kontrol et
+                return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('www.');
+            } catch (e) {
+                return false;
+            }
         }
 
         // Sayfa yüklendiğinde verileri çek
