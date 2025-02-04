@@ -206,17 +206,23 @@
                     const td = document.createElement('td');
                     const content = row[header] || '';
                     
-                    // URL kontrolü yap
-                    if (isValidURL(content)) {
+                    // Zaman damgası kontrolü
+                    if (header === 'Zaman damgası') {
+                        const date = new Date(content);
+                        if (!isNaN(date)) {
+                            td.textContent = date.toLocaleDateString('tr-TR');
+                        } else {
+                            td.textContent = content;
+                        }
+                    }
+                    // URL kontrolü
+                    else if (isValidURL(content)) {
                         const link = document.createElement('a');
                         link.href = content;
                         link.className = 'table-link';
-                        link.title = content; // Tam URL'yi tooltip olarak göster
-                        
-                        // URL'yi kısalt
+                        link.title = content;
                         const shortUrl = formatUrl(content);
                         link.textContent = shortUrl;
-                        
                         link.target = "_blank";
                         td.appendChild(link);
                     } else {
