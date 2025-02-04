@@ -47,9 +47,9 @@
             text-align: left;
             border: 1px solid #ddd;
             font-size: 14px;
-            max-width: 200px; /* Maksimum hücre genişliği */
+            max-width: 200px; /* Varsayılan maksimum genişlik */
             overflow: hidden;
-            text-overflow: ellipsis; /* Uzun metinler için ... göster */
+            text-overflow: ellipsis;
             white-space: nowrap;
         }
         th {
@@ -71,6 +71,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        /* Zaman damgası sütunu için özel genişlik */
+        td:first-child {
+            max-width: 150px; /* Zaman damgası sütunu için daha dar genişlik */
         }
     </style>
 </head>
@@ -223,12 +227,8 @@
                     const td = document.createElement('td');
                     const content = row[header] || '';
                     
-                    // Zaman damgası kontrolü
-                    if (header === 'Zaman damgası') {
-                        td.textContent = formatDate(content);
-                    }
                     // URL kontrolü
-                    else if (isValidURL(content)) {
+                    if (isValidURL(content)) {
                         const link = document.createElement('a');
                         link.href = content;
                         link.className = 'table-link';
