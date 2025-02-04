@@ -47,6 +47,10 @@
             text-align: left;
             border: 1px solid #ddd;
             font-size: 14px;
+            max-width: 200px; /* Maksimum hücre genişliği */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Uzun metinler için ... göster */
+            white-space: nowrap;
         }
         th {
             background-color: #007bff;
@@ -58,6 +62,15 @@
         }
         tr:nth-child(even) {
             background-color: #f8f9fa;
+        }
+        /* Link stilleri için yeni class */
+        .table-link {
+            color: #007bff;
+            text-decoration: underline;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -197,10 +210,14 @@
                     if (isValidURL(content)) {
                         const link = document.createElement('a');
                         link.href = content;
-                        link.textContent = content;
-                        link.target = "_blank"; // Yeni sekmede aç
-                        link.style.color = "#007bff"; // Link rengi
-                        link.style.textDecoration = "underline"; // Alt çizgi ekle
+                        link.className = 'table-link';
+                        link.title = content; // Tam URL'yi tooltip olarak göster
+                        
+                        // URL'yi kısalt
+                        const shortUrl = formatUrl(content);
+                        link.textContent = shortUrl;
+                        
+                        link.target = "_blank";
                         td.appendChild(link);
                     } else {
                         td.textContent = content;
@@ -222,6 +239,31 @@
                 return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('www.');
             } catch (e) {
                 return false;
+            }
+        }
+
+        // URL'yi kısaltmak için yardımcı fonksiyon
+        function formatUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                let domain = urlObj.hostname;
+                let path = urlObj.pathname;
+                
+                // www. kısmını kaldır
+                domain = domain.replace('www.', '');
+                
+                // Uzun path'i kısalt
+                if (path.length > 15) {
+                    path = path.substring(0, 15) + '...';
+                }
+                
+                return `${domain}${path}`;
+            } catch (e) {
+                // URL parse edilemezse orijinal metni döndür
+                if (url.length > 30) {
+                    return url.substring(0, 30) + '...';
+                }
+                return url;
             }
         }
 
