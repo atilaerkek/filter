@@ -81,19 +81,17 @@
             margin-bottom: 20px;
             gap: 10px;
         }
-        .home-button, .refresh-button {
+        .refresh-button {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            border: none;
+            cursor: pointer;
         }
-        .home-button:hover, .refresh-button:hover {
+        .refresh-button:hover {
             background-color: #0056b3;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
         }
     </style>
 </head>
@@ -101,10 +99,7 @@
     <div class="container">
         <div class="header-container">
             <h1>YEĞİTEK Okul Sorumlusu Evrakları Filtreleme</h1>
-            <div class="button-group">
-                <a href="https://atilaerkek.github.io/" class="home-button">Ana Sayfa</a>
-                <button class="refresh-button" onclick="loadData()">🔄 Güncelle</button>
-            </div>
+            <button class="refresh-button" onclick="loadData()">🔄 Güncelle</button>
         </div>
         
         <div class="filters">
@@ -126,7 +121,7 @@
 
         async function loadData() {
             try {
-                const response = await fetch(sheetUrl + "&t=" + new Date().getTime()); // cache temizlensin
+                const response = await fetch(sheetUrl + "&t=" + new Date().getTime());
                 const data = await response.text();
                 allData = parseCSV(data);
                 populateTeacherSelect();
