@@ -74,24 +74,26 @@
         td:first-child {
             max-width: 150px;
         }
+        .refresh-button {
+            float: right;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .refresh-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            gap: 10px;
-        }
-        .refresh-button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-        }
-        .refresh-button:hover {
-            background-color: #0056b3;
         }
     </style>
 </head>
@@ -99,7 +101,7 @@
     <div class="container">
         <div class="header-container">
             <h1>YEĞİTEK Okul Sorumlusu Evrakları Filtreleme</h1>
-            <button class="refresh-button" onclick="loadData()">🔄 Güncelle</button>
+            <button id="refreshBtn" class="refresh-button" onclick="loadData()">🔄 Güncelle</button>
         </div>
         
         <div class="filters">
@@ -120,62 +122,89 @@
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFyMzDuK10Nx8Nq8XeGVvbAtIlMyYW7Ddv0w7hSInh5wVcPp0clGJj49qPvai7mxiBaYmZNkS3L6NP/pub?output=csv";
 
         async function loadData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.textContent = "🔄 Güncelleniyor...";
+            btn.disabled = true;
+
             try {
                 const response = await fetch(sheetUrl + "&t=" + new Date().getTime());
                 const data = await response.text();
                 allData = parseCSV(data);
                 populateTeacherSelect();
                 displayData(allData);
+
+                // ✅ Güncellendi bildirimi
+                btn.textContent = "✅ Güncellendi";
+                setTimeout(() => {
+                    btn.textContent = "🔄 Güncelle";
+                    btn.disabled = false;
+                }, 1500);
+
             } catch (error) {
                 console.error('Veri yüklenirken hata oluştu:', error);
                 document.getElementById('results').innerHTML = '<p>Veri yüklenirken hata oluştu. Lütfen sayfayı yenileyin.</p>';
+                btn.textContent = "🔄 Güncelle";
+                btn.disabled = false;
             }
         }
 
         function populateTeacherSelect() {
-            const teachers = [...new Set(allData.map(item => item['Adı Soyadı']?.trim()).filter(Boolean))].sort();
+            const teachers = [...new Set(allData.map(item => item['Adı Soyadı']))].sort();
             teacherSelect.innerHTML = '<option value="">Tüm Öğretmenler</option>';
             teachers.forEach(teacher => {
-                const option = document.createElement('option');
-                option.value = teacher;
-                option.textContent = teacher;
-                teacherSelect.appendChild(option);
+                if (teacher && teacher.trim()) {
+                    const option = document.createElement('option');
+                    option.value = teacher;
+                    option.textContent = teacher;
+                    teacherSelect.appendChild(option);
+                }
             });
         }
 
-        teacherSelect.addEventListener('change', function() {
-            const selectedTeacher = this.value;
-            if (selectedTeacher) {
-                const filteredData = allData.filter(item => item['Adı Soyadı']?.trim() === selectedTeacher);
-                displayData(filteredData);
-            } else {
-                displayData(allData);
-            }
-        });
+        function setupEventListeners() {
+            teacherSelect.addEventListener('change', function() {
+                const selectedTeacher = this.value;
+                if (selectedTeacher) {
+                    const filteredData = allData.filter(item => item['Adı Soyadı'] === selectedTeacher);
+                    displayData(filteredData);
+                } else {
+                    displayData(allData);
+                }
+            });
+        }
 
         function parseCSV(csv) {
-            const lines = csv.split(/\r?\n/).filter(l => l.trim().length > 0);
-            const headers = lines[0].split(',').map(h => h.trim());
+            const lines = csv.split('\n');
             const result = [];
+            const headers = lines[0].split(',').map(h => h.trim());
 
             for (let i = 1; i < lines.length; i++) {
-                const row = [];
-                let inQuotes = false, value = "";
-                for (let char of lines[i]) {
+                const currentLine = lines[i].trim();
+                if (!currentLine) continue;
+
+                let values = [];
+                let inQuotes = false;
+                let currentValue = '';
+
+                for (let char of currentLine) {
                     if (char === '"') {
                         inQuotes = !inQuotes;
                     } else if (char === ',' && !inQuotes) {
-                        row.push(value.trim().replace(/^"|"$/g, ''));
-                        value = "";
+                        values.push(currentValue);
+                        currentValue = '';
                     } else {
-                        value += char;
+                        currentValue += char;
                     }
                 }
-                row.push(value.trim().replace(/^"|"$/g, ''));
+                values.push(currentValue);
 
-                if (row.length === headers.length) {
+                if (values.length > 0) {
                     const obj = {};
-                    headers.forEach((h, idx) => obj[h] = row[idx]);
+                    values.forEach((value, index) => {
+                        if (index < headers.length) {
+                            obj[headers[index]] = value.replace(/^"|"$/g, '').trim();
+                        }
+                    });
                     result.push(obj);
                 }
             }
@@ -190,6 +219,7 @@
 
             const table = document.createElement('table');
             const headers = Object.keys(data[0]);
+
             const headerRow = document.createElement('tr');
             headers.forEach(header => {
                 const th = document.createElement('th');
@@ -239,7 +269,10 @@
             }
         }
 
-        window.onload = loadData;
+        window.onload = function() {
+            loadData();
+            setupEventListeners();
+        };
     </script>
 </body>
 </html>
