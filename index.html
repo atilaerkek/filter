@@ -1,323 +1,250 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YEĞİTEK Okul Sorumlusu Evrakları Filtreleme</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .filters { margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 5px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-        select { min-width: 260px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        #results { margin-top: 16px; overflow-x: auto; max-height: 70vh; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th, td { padding: 8px; text-align: left; border: 1px solid #ddd; font-size: 14px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        thead th { background-color: #007bff; color: white; position: sticky; top: 0; z-index: 2; }
-        tr:nth-child(even) td { background-color: #f8f9fa; }
-        .table-link { color: #007bff; text-decoration: underline; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .home-button { padding: 10px 18px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-        .refresh-btn { padding:8px 12px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-        .small { font-size:13px; color:#555; }
-        .header-container { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .filters {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        select {
+            min-width: 300px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #results {
+            margin-top: 20px;
+            overflow-x: auto;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            font-size: 14px;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .table-link {
+            color: #007bff;
+            text-decoration: underline;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        td:first-child {
+            max-width: 150px;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .home-button, .refresh-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .home-button:hover, .refresh-button:hover {
+            background-color: #0056b3;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-container">
             <h1>YEĞİTEK Okul Sorumlusu Evrakları Filtreleme</h1>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <button id="refreshBtn" class="refresh-btn">Verileri Güncelle</button>
-                <a class="home-button" href="https://atilaerkek.github.io/" target="_blank" rel="noopener noreferrer">Ana Sayfa</a>
+            <div class="button-group">
+                <a href="https://atilaerkek.github.io/" class="home-button">Ana Sayfa</a>
+                <button class="refresh-button" onclick="loadData()">🔄 Güncelle</button>
             </div>
         </div>
-
+        
         <div class="filters">
-            <label for="teacherSelect">Okul Sorumlusu Seçiniz:</label>
-            <select id="teacherSelect"><option value="">Tüm Okul Sorumluları</option></select>
-
-            <div style="margin-left:auto; text-align:right;">
-                <div class="small">Son güncelleme: <span id="lastUpdated">—</span></div>
-                <div class="small" id="rowCount">Satır: 0</div>
-            </div>
+            <label for="teacherSelect">Öğretmen Seçiniz:</label>
+            <select id="teacherSelect">
+                <option value="">Tüm Öğretmenler</option>
+            </select>
         </div>
 
-        <div id="results"><!-- tablo buraya gelecek --></div>
+        <div id="results">
+            <!-- Sonuçlar buraya gelecek -->
+        </div>
     </div>
 
     <script>
-    // ========== AYAR ==========
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXqYCt6oaKrDvJh6AylhGT7vj70FTC5V1RbWQP2jsVnTnc1VJoQcHH2DVV17mUckuSY9PO2gfbFRGk/pub?output=csv';
-    let allData = [];
-    let autoRefreshId = null;
-    const autoRefreshSeconds = 60; // otomatik yenileme aralığı
+        let allData = [];
+        const teacherSelect = document.getElementById('teacherSelect');
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFyMzDuK10Nx8Nq8XeGVvbAtIlMyYW7Ddv0w7hSInh5wVcPp0clGJj49qPvai7mxiBaYmZNkS3L6NP/pub?output=csv";
 
-    // DOM
-    const teacherSelect = document.getElementById('teacherSelect');
-    const resultsDiv = document.getElementById('results');
-    const lastUpdatedEl = document.getElementById('lastUpdated');
-    const rowCountEl = document.getElementById('rowCount');
-    const refreshBtn = document.getElementById('refreshBtn');
-
-    // Normalizasyon: BOM, NBSP, fazla boşluk kaldır
-    function normalizeHeader(s) {
-        if (!s && s !== '') return '';
-        return String(s).replace(/^\uFEFF/, '').replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
-    }
-
-    // Ad Soyad sütununu esnek bulma (farklı yazımlar için)
-    function findNameKeyFromHeaders(headers) {
-        const normalized = headers.map(h => ({ orig: h, norm: normalizeHeader(h) }));
-        // 1) doğrudan eşleşme aranan terimler
-        const targets = ['adı soyadı', 'ad soyad', 'adısoyadı', 'ad_soyad', 'adi soyad', 'adsoyad', 'ad', 'isim', 'öğretmen'];
-        for (let t of targets) {
-            const found = normalized.find(x => x.norm === t);
-            if (found) return found.orig;
-        }
-        // 2) içerik bazlı arama (hem "ad" hem "soy" içeriyorsa)
-        for (let x of normalized) {
-            if (x.norm.includes('ad') && x.norm.includes('soy')) return x.orig;
-        }
-        // 3) kısmi eşleşme: "ad" veya "isim" ya da "öğretmen"
-        for (let x of normalized) {
-            if (x.norm.includes('isim') || x.norm.includes('öğretmen') || x.norm === 'ad') return x.orig;
-        }
-        return null;
-    }
-
-    // Eğer findNameKeyFromHeaders başarısız olursa, veri örneklerine bakarak tahmin et
-    function guessNameKeyByHeuristic(data) {
-        if (!Array.isArray(data) || data.length === 0) return null;
-        const headers = Object.keys(data[0]);
-        const nameRegex = /^[\p{L}\s.'-]+$/u; // yalnızca harf, boşluk, nokta, tek tırnak, tire (iyi bir isim göstergesi)
-        const scores = headers.map(h => {
-            let count = 0;
-            for (let i = 0; i < Math.min(100, data.length); i++) {
-                const v = String(data[i][h] || '').trim();
-                if (!v) continue;
-                // URL/telefon/numara gibi olmayan, harf ağırlıklı kısa metinler puan alır
-                if (nameRegex.test(v) && v.length < 60 && !v.includes(',')) count++;
+        async function loadData() {
+            try {
+                const response = await fetch(sheetUrl + "&t=" + new Date().getTime()); // cache temizlensin
+                const data = await response.text();
+                allData = parseCSV(data);
+                populateTeacherSelect();
+                displayData(allData);
+            } catch (error) {
+                console.error('Veri yüklenirken hata oluştu:', error);
+                document.getElementById('results').innerHTML = '<p>Veri yüklenirken hata oluştu. Lütfen sayfayı yenileyin.</p>';
             }
-            return { header: h, score: count };
+        }
+
+        function populateTeacherSelect() {
+            const teachers = [...new Set(allData.map(item => item['Adı Soyadı']?.trim()).filter(Boolean))].sort();
+            teacherSelect.innerHTML = '<option value="">Tüm Öğretmenler</option>';
+            teachers.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher;
+                option.textContent = teacher;
+                teacherSelect.appendChild(option);
+            });
+        }
+
+        teacherSelect.addEventListener('change', function() {
+            const selectedTeacher = this.value;
+            if (selectedTeacher) {
+                const filteredData = allData.filter(item => item['Adı Soyadı']?.trim() === selectedTeacher);
+                displayData(filteredData);
+            } else {
+                displayData(allData);
+            }
         });
-        scores.sort((a,b)=> b.score - a.score);
-        if (scores.length && scores[0].score >= 3) return scores[0].header; // yeterli eşleşme varsa al
-        return null;
-    }
 
-    // Delimiter tespiti
-    function detectDelimiter(text) {
-        const firstLine = (text.split(/\r\n|\n|\r/)[0] || '');
-        const commaCount = (firstLine.match(/,/g) || []).length;
-        const semiCount = (firstLine.match(/;/g) || []).length;
-        return semiCount > commaCount ? ';' : ',';
-    }
+        function parseCSV(csv) {
+            const lines = csv.split(/\r?\n/).filter(l => l.trim().length > 0);
+            const headers = lines[0].split(',').map(h => h.trim());
+            const result = [];
 
-    // Güçlü CSV ayrıştırıcı (tırnak içi virgül/satır sonu desteği)
-    function parseCSV(csvText) {
-        if (!csvText) return [];
-        const delim = detectDelimiter(csvText);
-        const rows = [];
-        let cur = '';
-        let row = [];
-        let inQuotes = false;
-        for (let i=0; i<csvText.length; i++) {
-            const ch = csvText[i];
-            const next = csvText[i+1] || '';
-            if (ch === '"') {
-                if (inQuotes && next === '"') { cur += '"'; i++; continue; } // escaped quote
-                inQuotes = !inQuotes;
-                continue;
-            }
-            if (!inQuotes && ch === delim) {
-                row.push(cur);
-                cur = '';
-                continue;
-            }
-            if (!inQuotes && ch === '\n') {
-                row.push(cur);
-                rows.push(row);
-                row = [];
-                cur = '';
-                continue;
-            }
-            if (!inQuotes && ch === '\r') {
-                // ignore, handled by \n
-                continue;
-            }
-            cur += ch;
-        }
-        // son alan/ satır
-        if (cur !== '' || row.length > 0) {
-            row.push(cur);
-            rows.push(row);
-        }
-        if (!rows.length) return [];
-
-        // headers
-        const rawHeaders = rows.shift().map(h => String(h || '').replace(/^\uFEFF/, '').replace(/\u00A0/g,' ').trim());
-        const result = rows.map(r => {
-            const obj = {};
-            for (let i=0; i<rawHeaders.length; i++) {
-                const key = rawHeaders[i] || ('col' + i);
-                let v = r[i] !== undefined ? r[i] : '';
-                v = String(v).trim();
-                if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1,-1);
-                obj[key] = v;
-            }
-            return obj;
-        });
-        return result;
-    }
-
-    // URL kontrol / gösterim
-    function isValidURL(s) {
-        if (!s) return false;
-        const v = String(s).trim();
-        return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('www.');
-    }
-    function formatUrlDisplay(url) {
-        try {
-            let u = String(url).trim();
-            if (u.startsWith('www.')) u = 'https://' + u;
-            const o = new URL(u);
-            let domain = o.hostname.replace(/^www\./,'');
-            let path = (o.pathname + (o.search||'')).substring(0, 30);
-            if ((o.pathname + (o.search||'')).length > 30) path += '...';
-            return domain + path;
-        } catch (e) {
-            const s = String(url);
-            return s.length > 30 ? s.substring(0,30) + '...' : s;
-        }
-    }
-
-    // Tablo gösterimi
-    function displayData(data) {
-        if (!Array.isArray(data) || data.length === 0) {
-            resultsDiv.innerHTML = '<p>Veri bulunamadı.</p>';
-            return;
-        }
-        const headers = Object.keys(data[0]);
-        const table = document.createElement('table');
-        const thead = document.createElement('thead');
-        const headRow = document.createElement('tr');
-        for (let h of headers) {
-            const th = document.createElement('th');
-            th.textContent = h;
-            headRow.appendChild(th);
-        }
-        thead.appendChild(headRow);
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        data.forEach(row => {
-            const tr = document.createElement('tr');
-            for (let h of headers) {
-                const td = document.createElement('td');
-                const v = row[h] || '';
-                if (isValidURL(v)) {
-                    let href = v.trim();
-                    if (href.startsWith('www.')) href = 'https://' + href;
-                    const a = document.createElement('a');
-                    a.href = href;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                    a.className = 'table-link';
-                    a.title = v;
-                    a.textContent = formatUrlDisplay(v);
-                    td.appendChild(a);
-                } else {
-                    td.textContent = v;
+            for (let i = 1; i < lines.length; i++) {
+                const row = [];
+                let inQuotes = false, value = "";
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(value.trim().replace(/^"|"$/g, ''));
+                        value = "";
+                    } else {
+                        value += char;
+                    }
                 }
-                tr.appendChild(td);
+                row.push(value.trim().replace(/^"|"$/g, ''));
+
+                if (row.length === headers.length) {
+                    const obj = {};
+                    headers.forEach((h, idx) => obj[h] = row[idx]);
+                    result.push(obj);
+                }
             }
-            tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        resultsDiv.innerHTML = '';
-        resultsDiv.appendChild(table);
-    }
-
-    // Öğretmen/Okul Sorumlusu dropdown doldurma (seçimi korur)
-    function populateTeacherSelect(preservedValue) {
-        teacherSelect.innerHTML = '<option value="">Tüm Okul Sorumluları</option>';
-        if (!allData || allData.length === 0) return;
-
-        // header list
-        const headers = Object.keys(allData[0]);
-        let nameKey = findNameKeyFromHeaders(headers);
-        if (!nameKey) nameKey = guessNameKeyByHeuristic(allData);
-        // Eğer hala yoksa, son çare ilk header'ı al
-        if (!nameKey) nameKey = headers[0];
-
-        // benzersiz, trimlenmiş, boş olmayan isimler
-        const set = new Set();
-        for (let r of allData) {
-            const raw = String(r[nameKey] || '').trim();
-            if (raw) set.add(raw);
+            return result;
         }
-        const arr = Array.from(set).sort((a,b)=> a.localeCompare(b, 'tr'));
-        arr.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            teacherSelect.appendChild(opt);
-        });
-        if (preservedValue) {
-            // restore if exists
-            const exists = Array.from(teacherSelect.options).some(o => o.value === preservedValue);
-            teacherSelect.value = exists ? preservedValue : '';
+
+        function displayData(data) {
+            if (!data.length) {
+                document.getElementById('results').innerHTML = '<p>Veri bulunamadı.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            const headers = Object.keys(data[0]);
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    const content = row[header] || '';
+                    if (isValidURL(content)) {
+                        const link = document.createElement('a');
+                        link.href = content;
+                        link.className = 'table-link';
+                        link.title = content;
+                        link.textContent = formatUrl(content);
+                        link.target = "_blank";
+                        td.appendChild(link);
+                    } else {
+                        td.textContent = content;
+                    }
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('results').appendChild(table);
         }
-    }
 
-    // Filtre uygula
-    function applyFilter() {
-        const selected = teacherSelect.value;
-        if (!allData || allData.length === 0) return;
-        const headers = Object.keys(allData[0]);
-        let nameKey = findNameKeyFromHeaders(headers) || guessNameKeyByHeuristic(allData) || headers[0];
-        if (selected) {
-            const filtered = allData.filter(r => String(r[nameKey] || '').trim() === selected);
-            displayData(filtered.length ? filtered : allData);
-            rowCountEl.textContent = 'Satır: ' + filtered.length;
-        } else {
-            displayData(allData);
-            rowCountEl.textContent = 'Satır: ' + allData.length;
+        function isValidURL(str) {
+            return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('www.');
         }
-    }
 
-    // Veri çekme (cache-bypass)
-    async function loadData() {
-        try {
-            const prevSelected = teacherSelect.value || '';
-            const url = SHEET_URL + '&_=' + Date.now();
-            const resp = await fetch(url, { cache: 'no-store' });
-            if (!resp.ok) throw new Error('Sunucudan veri alınamadı: ' + resp.status);
-            const txt = await resp.text();
-            allData = parseCSV(txt);
-            populateTeacherSelect(prevSelected);
-            applyFilter();
-            lastUpdatedEl.textContent = new Date().toLocaleString('tr-TR');
-        } catch (err) {
-            console.error('loadData hata:', err);
-            resultsDiv.innerHTML = '<p>Veri yüklenirken hata oluştu. Konsolu kontrol et.</p>';
+        function formatUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                let domain = urlObj.hostname.replace('www.', '');
+                let path = urlObj.pathname;
+                if (path.length > 15) path = path.substring(0, 15) + '...';
+                return `${domain}${path}`;
+            } catch {
+                return url.length > 30 ? url.substring(0, 30) + '...' : url;
+            }
         }
-    }
 
-    // Eventler
-    teacherSelect.addEventListener('change', applyFilter);
-    refreshBtn.addEventListener('click', () => loadData());
-
-    // Otomatik yenileme başlat
-    function startAuto() {
-        if (autoRefreshId) clearInterval(autoRefreshId);
-        autoRefreshId = setInterval(loadData, autoRefreshSeconds * 1000);
-    }
-
-    // İlk yükleme
-    window.addEventListener('load', () => {
-        loadData();
-        startAuto();
-    });
+        window.onload = loadData;
     </script>
 </body>
 </html>
