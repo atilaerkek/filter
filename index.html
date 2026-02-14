@@ -22,8 +22,10 @@
             color: var(--text);
             margin: 0;
             padding: 15px;
+            height: 100vh;
             display: flex;
             justify-content: center;
+            overflow: hidden;
         }
 
         .container {
@@ -33,15 +35,17 @@
             padding: 24px;
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            max-height: 95vh;
         }
 
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 15px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
         }
 
         .header-container h1 {
@@ -62,34 +66,23 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .refresh-button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .refresh-button:disabled {
-            background-color: var(--text-light);
-            cursor: not-allowed;
         }
 
         .filter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
             background: #f1f5f9;
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
         }
 
         .filter-item {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 5px;
         }
 
         label {
@@ -98,31 +91,18 @@
             color: var(--text-light);
         }
 
-        select, input {
-            padding: 10px 12px;
+        select {
+            padding: 10px;
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 0.95rem;
-            outline: none;
             background: white;
         }
 
-        select:focus, input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .stats {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
         #results {
-            margin-top: 10px;
-            overflow-x: auto;
-            border-radius: 12px;
+            flex-grow: 1;
+            overflow: auto;
+            border-radius: 8px;
             border: 1px solid var(--border);
             background: white;
         }
@@ -131,6 +111,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
+            table-layout: auto;
         }
 
         th {
@@ -143,41 +124,58 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
+        }
+
+        /* Zaman Damgası Sütununu Ultra Daralt */
+        .col-timestamp {
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            white-space: normal !important; /* Alt alta inmesine izin vererek daraltıyoruz */
+            padding: 12px 8px !important;
+            font-size: 0.8rem !important;
+            line-height: 1.2;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        /* Diğer sütunlar tüm alanı paylaşsın */
+        .col-normal {
+            width: auto;
+            white-space: nowrap;
         }
 
         td {
             padding: 12px 16px;
             border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-            max-width: 250px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         tr:hover {
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
         }
 
         .table-link {
             color: var(--primary);
             text-decoration: none;
             font-weight: 600;
-            display: inline-block;
             background: #eff6ff;
             padding: 4px 8px;
             border-radius: 4px;
-            transition: all 0.2s;
         }
 
-        .table-link:hover {
-            background: var(--primary);
-            color: white;
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            flex-shrink: 0;
         }
 
         @media (max-width: 768px) {
-            .header-container h1 { font-size: 1.2rem; }
-            .container { padding: 15px; }
-            .filter-grid { padding: 15px; }
+            .filter-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -185,43 +183,33 @@
 
 <div class="container">
     <div class="header-container">
-        <h1>Evrak İzleme & Filtreleme</h1>
+        <h1>Evrak İzleme Paneli</h1>
         <button id="refreshBtn" class="refresh-button" onclick="loadData()">
             <span id="refreshIcon">🔄</span> <span id="btnText">Güncelle</span>
         </button>
     </div>
     
     <div class="filter-grid">
-        <!-- Öğretmen Filtresi -->
         <div class="filter-item">
-            <label for="teacherSelect">Öğretmen</label>
+            <label for="teacherSelect">Öğretmen Seçimi</label>
             <select id="teacherSelect" onchange="applyFilters()">
                 <option value="">Tüm Öğretmenler</option>
             </select>
         </div>
 
-        <!-- Faaliyet Ayı Filtresi -->
         <div class="filter-item">
             <label for="monthSelect">Faaliyet Ayı</label>
             <select id="monthSelect" onchange="applyFilters()">
                 <option value="">Tüm Aylar</option>
             </select>
         </div>
-
-        <!-- Genel Arama -->
-        <div class="filter-item">
-            <label for="searchInput">Genel Arama</label>
-            <input type="text" id="searchInput" placeholder="Herhangi bir anahtar kelime..." onkeyup="applyFilters()">
-        </div>
     </div>
 
-    <div class="stats" id="statsArea">Lütfen verilerin yüklenmesini bekleyin...</div>
+    <div class="stats" id="statsArea" style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px;">Veriler yükleniyor...</div>
 
-    <div id="results">
-        <!-- Sonuç tablosu buraya gelecek -->
-    </div>
+    <div id="results"></div>
 
-    <div style="text-align:center; margin-top:20px; color:#94a3b8; font-size:0.8rem;">
+    <div class="footer">
         Atila YEĞİTEK Profesyonel Veri Paneli &copy; 2024
     </div>
 </div>
@@ -230,42 +218,30 @@
     let allData = [];
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFyMzDuK10Nx8Nq8XeGVvbAtIlMyYW7Ddv0w7hSInh5wVcPp0clGJj49qPvai7mxiBaYmZNkS3L6NP/pub?output=csv";
 
-    // Veri Yükleme Fonksiyonu
     async function loadData() {
         const btn = document.getElementById('refreshBtn');
         const text = document.getElementById('btnText');
-        
-        text.textContent = "Yükleniyor...";
         btn.disabled = true;
+        text.textContent = "Yükleniyor...";
 
         try {
             const response = await fetch(sheetUrl + "&t=" + new Date().getTime());
             const csvData = await response.text();
             allData = parseCSV(csvData);
             
-            // Filtreleri doldur
             populateDropdown('teacherSelect', 'Adı Soyadı');
-            populateDropdown('monthSelect', 'Faaliyet Ayı'); // Sütun adının 'Faaliyet Ayı' olduğunu varsayıyoruz
+            populateDropdown('monthSelect', 'Faaliyet Ayı');
             
             displayData(allData);
 
-            text.textContent = "Güncellendi";
-            btn.style.backgroundColor = "#16a34a";
-            setTimeout(() => {
-                text.textContent = "Güncelle";
-                btn.disabled = false;
-                btn.style.backgroundColor = "";
-            }, 2000);
-
+            text.textContent = "Güncelle";
+            btn.disabled = false;
         } catch (error) {
-            console.error('Hata:', error);
-            document.getElementById('results').innerHTML = '<div style="padding:20px; text-align:center; color:red;">Veri çekilemedi. Lütfen internet bağlantınızı kontrol edin.</div>';
-            text.textContent = "Hata Oluştu";
+            document.getElementById('results').innerHTML = '<div style="padding:20px; text-align:center; color:red;">Veri hatası!</div>';
             btn.disabled = false;
         }
     }
 
-    // CSV Ayrıştırma
     function parseCSV(csv) {
         const lines = csv.split('\n');
         const result = [];
@@ -280,14 +256,11 @@
             let currentValue = '';
 
             for (let char of currentLine) {
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
                     values.push(currentValue);
                     currentValue = '';
-                } else {
-                    currentValue += char;
-                }
+                } else currentValue += char;
             }
             values.push(currentValue);
 
@@ -302,84 +275,77 @@
         return result;
     }
 
-    // Dropdown doldurma
     function populateDropdown(elementId, keyName) {
         const select = document.getElementById(elementId);
-        const currentValue = select.value;
         const uniqueValues = [...new Set(allData.map(item => item[keyName]))].filter(v => v).sort();
+        const label = elementId === 'teacherSelect' ? 'Öğretmenler' : 'Aylar';
         
-        const labelText = elementId === 'teacherSelect' ? 'Öğretmenler' : 'Aylar';
-        select.innerHTML = `<option value="">Tüm ${labelText}</option>`;
-        
+        select.innerHTML = `<option value="">Tüm ${label}</option>`;
         uniqueValues.forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
             opt.textContent = val;
             select.appendChild(opt);
         });
-        select.value = currentValue;
     }
 
-    // Filtreleme Mantığı (Çoklu Filtre)
     function applyFilters() {
-        const selectedTeacher = document.getElementById('teacherSelect').value;
-        const selectedMonth = document.getElementById('monthSelect').value;
-        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+        const teacher = document.getElementById('teacherSelect').value;
+        const month = document.getElementById('monthSelect').value;
 
         const filtered = allData.filter(item => {
-            const matchesTeacher = !selectedTeacher || item['Adı Soyadı'] === selectedTeacher;
-            const matchesMonth = !selectedMonth || item['Faaliyet Ayı'] === selectedMonth;
-            const matchesSearch = !searchQuery || Object.values(item).some(val => 
-                String(val).toLowerCase().includes(searchQuery)
-            );
-
-            return matchesTeacher && matchesMonth && matchesSearch;
+            const mTeacher = !teacher || item['Adı Soyadı'] === teacher;
+            const mMonth = !month || item['Faaliyet Ayı'] === month;
+            return mTeacher && mMonth;
         });
 
         displayData(filtered);
     }
 
-    // Veriyi Tabloya Dökme
     function displayData(data) {
         const resultsDiv = document.getElementById('results');
         const statsArea = document.getElementById('statsArea');
-        
-        statsArea.textContent = `Toplam ${data.length} kayıt bulundu.`;
+        statsArea.textContent = `${data.length} kayıt listelendi.`;
 
         if (data.length === 0) {
-            resultsDiv.innerHTML = '<div style="padding:40px; text-align:center; color:#64748b;">Eşleşen kayıt bulunamadı.</div>';
+            resultsDiv.innerHTML = '<div style="padding:40px; text-align:center;">Kayıt bulunamadı.</div>';
             return;
         }
 
         const table = document.createElement('table');
         const headers = Object.keys(data[0]);
 
-        // Başlıklar
         const headerRow = document.createElement('tr');
-        headers.forEach(header => {
+        headers.forEach(h => {
             const th = document.createElement('th');
-            th.textContent = header;
+            th.textContent = h;
+            if (h.toLowerCase().includes('zaman')) {
+                th.className = 'col-timestamp';
+            } else {
+                th.className = 'col-normal';
+            }
             headerRow.appendChild(th);
         });
         table.appendChild(headerRow);
 
-        // Satırlar
         data.forEach(row => {
             const tr = document.createElement('tr');
-            headers.forEach(header => {
+            headers.forEach(h => {
                 const td = document.createElement('td');
-                const content = row[header] || '';
+                const val = row[h] || '';
                 
-                if (isValidURL(content)) {
-                    const link = document.createElement('a');
-                    link.href = content;
-                    link.className = 'table-link';
-                    link.textContent = 'Bağlantıyı Aç';
-                    link.target = "_blank";
-                    td.appendChild(link);
+                if (h.toLowerCase().includes('zaman')) {
+                    td.className = 'col-timestamp';
                 } else {
-                    td.textContent = content;
-                    td.title = content;
+                    td.className = 'col-normal';
+                }
+
+                if (val.startsWith('http')) {
+                    const a = document.createElement('a');
+                    a.href = val; a.className = 'table-link'; a.target = '_blank'; a.textContent = 'Aç';
+                    td.appendChild(a);
+                } else {
+                    td.textContent = val;
                 }
                 tr.appendChild(td);
             });
@@ -390,12 +356,7 @@
         resultsDiv.appendChild(table);
     }
 
-    function isValidURL(str) {
-        return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('www.');
-    }
-
     window.onload = loadData;
 </script>
-
 </body>
 </html>
