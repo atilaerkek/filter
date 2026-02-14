@@ -200,15 +200,15 @@
             </select>
         </div>
 
-        <!-- Faaliyet Filtresi (Yeni) -->
+        <!-- Faaliyet Ayı Filtresi -->
         <div class="filter-item">
-            <label for="activitySelect">Faaliyet Türü</label>
-            <select id="activitySelect" onchange="applyFilters()">
-                <option value="">Tüm Faaliyetler</option>
+            <label for="monthSelect">Faaliyet Ayı</label>
+            <select id="monthSelect" onchange="applyFilters()">
+                <option value="">Tüm Aylar</option>
             </select>
         </div>
 
-        <!-- Genel Arama (Yeni) -->
+        <!-- Genel Arama -->
         <div class="filter-item">
             <label for="searchInput">Genel Arama</label>
             <input type="text" id="searchInput" placeholder="Herhangi bir anahtar kelime..." onkeyup="applyFilters()">
@@ -233,7 +233,6 @@
     // Veri Yükleme Fonksiyonu
     async function loadData() {
         const btn = document.getElementById('refreshBtn');
-        const icon = document.getElementById('refreshIcon');
         const text = document.getElementById('btnText');
         
         text.textContent = "Yükleniyor...";
@@ -246,7 +245,7 @@
             
             // Filtreleri doldur
             populateDropdown('teacherSelect', 'Adı Soyadı');
-            populateDropdown('activitySelect', 'Yapılan Faaliyet'); // Sütun adınızın 'Yapılan Faaliyet' olduğunu varsaydım, değilse değiştirin.
+            populateDropdown('monthSelect', 'Faaliyet Ayı'); // Sütun adının 'Faaliyet Ayı' olduğunu varsayıyoruz
             
             displayData(allData);
 
@@ -303,13 +302,15 @@
         return result;
     }
 
-    // Dropdown doldurma (Öğretmen ve Faaliyet için)
+    // Dropdown doldurma
     function populateDropdown(elementId, keyName) {
         const select = document.getElementById(elementId);
         const currentValue = select.value;
         const uniqueValues = [...new Set(allData.map(item => item[keyName]))].filter(v => v).sort();
         
-        select.innerHTML = `<option value="">Tüm ${elementId === 'teacherSelect' ? 'Öğretmenler' : 'Faaliyetler'}</option>`;
+        const labelText = elementId === 'teacherSelect' ? 'Öğretmenler' : 'Aylar';
+        select.innerHTML = `<option value="">Tüm ${labelText}</option>`;
+        
         uniqueValues.forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
@@ -322,17 +323,17 @@
     // Filtreleme Mantığı (Çoklu Filtre)
     function applyFilters() {
         const selectedTeacher = document.getElementById('teacherSelect').value;
-        const selectedActivity = document.getElementById('activitySelect').value;
+        const selectedMonth = document.getElementById('monthSelect').value;
         const searchQuery = document.getElementById('searchInput').value.toLowerCase();
 
         const filtered = allData.filter(item => {
             const matchesTeacher = !selectedTeacher || item['Adı Soyadı'] === selectedTeacher;
-            const matchesActivity = !selectedActivity || item['Yapılan Faaliyet'] === selectedActivity;
+            const matchesMonth = !selectedMonth || item['Faaliyet Ayı'] === selectedMonth;
             const matchesSearch = !searchQuery || Object.values(item).some(val => 
                 String(val).toLowerCase().includes(searchQuery)
             );
 
-            return matchesTeacher && matchesActivity && matchesSearch;
+            return matchesTeacher && matchesMonth && matchesSearch;
         });
 
         displayData(filtered);
@@ -378,7 +379,7 @@
                     td.appendChild(link);
                 } else {
                     td.textContent = content;
-                    td.title = content; // Üzerine gelince tam metni gösterir
+                    td.title = content;
                 }
                 tr.appendChild(td);
             });
