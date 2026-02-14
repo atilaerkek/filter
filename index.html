@@ -1,1 +1,400 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YEĞİTEK Evrak Filtreleme | Atila YEĞİTEK</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
 
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-container h1 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .refresh-button {
+            padding: 10px 18px;
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .refresh-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .refresh-button:disabled {
+            background-color: var(--text-light);
+            cursor: not-allowed;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        select, input {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            background: white;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .stats {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        #results {
+            margin-top: 10px;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-light);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .table-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            background: #eff6ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .table-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header-container h1 { font-size: 1.2rem; }
+            .container { padding: 15px; }
+            .filter-grid { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-container">
+        <h1>Evrak İzleme & Filtreleme</h1>
+        <button id="refreshBtn" class="refresh-button" onclick="loadData()">
+            <span id="refreshIcon">🔄</span> <span id="btnText">Güncelle</span>
+        </button>
+    </div>
+    
+    <div class="filter-grid">
+        <!-- Öğretmen Filtresi -->
+        <div class="filter-item">
+            <label for="teacherSelect">Öğretmen</label>
+            <select id="teacherSelect" onchange="applyFilters()">
+                <option value="">Tüm Öğretmenler</option>
+            </select>
+        </div>
+
+        <!-- Faaliyet Filtresi (Yeni) -->
+        <div class="filter-item">
+            <label for="activitySelect">Faaliyet Türü</label>
+            <select id="activitySelect" onchange="applyFilters()">
+                <option value="">Tüm Faaliyetler</option>
+            </select>
+        </div>
+
+        <!-- Genel Arama (Yeni) -->
+        <div class="filter-item">
+            <label for="searchInput">Genel Arama</label>
+            <input type="text" id="searchInput" placeholder="Herhangi bir anahtar kelime..." onkeyup="applyFilters()">
+        </div>
+    </div>
+
+    <div class="stats" id="statsArea">Lütfen verilerin yüklenmesini bekleyin...</div>
+
+    <div id="results">
+        <!-- Sonuç tablosu buraya gelecek -->
+    </div>
+
+    <div style="text-align:center; margin-top:20px; color:#94a3b8; font-size:0.8rem;">
+        Atila YEĞİTEK Profesyonel Veri Paneli &copy; 2024
+    </div>
+</div>
+
+<script>
+    let allData = [];
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFyMzDuK10Nx8Nq8XeGVvbAtIlMyYW7Ddv0w7hSInh5wVcPp0clGJj49qPvai7mxiBaYmZNkS3L6NP/pub?output=csv";
+
+    // Veri Yükleme Fonksiyonu
+    async function loadData() {
+        const btn = document.getElementById('refreshBtn');
+        const icon = document.getElementById('refreshIcon');
+        const text = document.getElementById('btnText');
+        
+        text.textContent = "Yükleniyor...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(sheetUrl + "&t=" + new Date().getTime());
+            const csvData = await response.text();
+            allData = parseCSV(csvData);
+            
+            // Filtreleri doldur
+            populateDropdown('teacherSelect', 'Adı Soyadı');
+            populateDropdown('activitySelect', 'Yapılan Faaliyet'); // Sütun adınızın 'Yapılan Faaliyet' olduğunu varsaydım, değilse değiştirin.
+            
+            displayData(allData);
+
+            text.textContent = "Güncellendi";
+            btn.style.backgroundColor = "#16a34a";
+            setTimeout(() => {
+                text.textContent = "Güncelle";
+                btn.disabled = false;
+                btn.style.backgroundColor = "";
+            }, 2000);
+
+        } catch (error) {
+            console.error('Hata:', error);
+            document.getElementById('results').innerHTML = '<div style="padding:20px; text-align:center; color:red;">Veri çekilemedi. Lütfen internet bağlantınızı kontrol edin.</div>';
+            text.textContent = "Hata Oluştu";
+            btn.disabled = false;
+        }
+    }
+
+    // CSV Ayrıştırma
+    function parseCSV(csv) {
+        const lines = csv.split('\n');
+        const result = [];
+        const headers = lines[0].split(',').map(h => h.trim());
+
+        for (let i = 1; i < lines.length; i++) {
+            const currentLine = lines[i].trim();
+            if (!currentLine) continue;
+
+            let values = [];
+            let inQuotes = false;
+            let currentValue = '';
+
+            for (let char of currentLine) {
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(currentValue);
+                    currentValue = '';
+                } else {
+                    currentValue += char;
+                }
+            }
+            values.push(currentValue);
+
+            const obj = {};
+            values.forEach((value, index) => {
+                if (index < headers.length) {
+                    obj[headers[index]] = value.replace(/^"|"$/g, '').trim();
+                }
+            });
+            result.push(obj);
+        }
+        return result;
+    }
+
+    // Dropdown doldurma (Öğretmen ve Faaliyet için)
+    function populateDropdown(elementId, keyName) {
+        const select = document.getElementById(elementId);
+        const currentValue = select.value;
+        const uniqueValues = [...new Set(allData.map(item => item[keyName]))].filter(v => v).sort();
+        
+        select.innerHTML = `<option value="">Tüm ${elementId === 'teacherSelect' ? 'Öğretmenler' : 'Faaliyetler'}</option>`;
+        uniqueValues.forEach(val => {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            select.appendChild(opt);
+        });
+        select.value = currentValue;
+    }
+
+    // Filtreleme Mantığı (Çoklu Filtre)
+    function applyFilters() {
+        const selectedTeacher = document.getElementById('teacherSelect').value;
+        const selectedActivity = document.getElementById('activitySelect').value;
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+        const filtered = allData.filter(item => {
+            const matchesTeacher = !selectedTeacher || item['Adı Soyadı'] === selectedTeacher;
+            const matchesActivity = !selectedActivity || item['Yapılan Faaliyet'] === selectedActivity;
+            const matchesSearch = !searchQuery || Object.values(item).some(val => 
+                String(val).toLowerCase().includes(searchQuery)
+            );
+
+            return matchesTeacher && matchesActivity && matchesSearch;
+        });
+
+        displayData(filtered);
+    }
+
+    // Veriyi Tabloya Dökme
+    function displayData(data) {
+        const resultsDiv = document.getElementById('results');
+        const statsArea = document.getElementById('statsArea');
+        
+        statsArea.textContent = `Toplam ${data.length} kayıt bulundu.`;
+
+        if (data.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding:40px; text-align:center; color:#64748b;">Eşleşen kayıt bulunamadı.</div>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        const headers = Object.keys(data[0]);
+
+        // Başlıklar
+        const headerRow = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+        // Satırlar
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            headers.forEach(header => {
+                const td = document.createElement('td');
+                const content = row[header] || '';
+                
+                if (isValidURL(content)) {
+                    const link = document.createElement('a');
+                    link.href = content;
+                    link.className = 'table-link';
+                    link.textContent = 'Bağlantıyı Aç';
+                    link.target = "_blank";
+                    td.appendChild(link);
+                } else {
+                    td.textContent = content;
+                    td.title = content; // Üzerine gelince tam metni gösterir
+                }
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+
+        resultsDiv.innerHTML = '';
+        resultsDiv.appendChild(table);
+    }
+
+    function isValidURL(str) {
+        return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('www.');
+    }
+
+    window.onload = loadData;
+</script>
+
+</body>
+</html>
